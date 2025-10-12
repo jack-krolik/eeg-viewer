@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EEG Sleep Stage Topomap Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .upload-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px dashed #ccc;
+            text-align: center;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .file-label:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .file-info {
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .play-btn {
+            background: #28a745;
+            color: white;
+        }
+        
+        .play-btn:hover:not(:disabled) {
+            background: #218838;
+            transform: scale(1.05);
+        }
+        
+        .pause-btn {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .pause-btn:hover:not(:disabled) {
+            background: #e0a800;
+            transform: scale(1.05);
+        }
+        
+        select {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        select:hover {
+            border-color: #667eea;
+        }
+        
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #5568d3;
+            transform: scale(1.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+        
+        #topoCanvas, #avgTopoCanvas {
+            border: 2px solid #eee;
+            border-radius: 10px;
+            background: white;
+        }
+        
+        .topomap-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        .topomap-wrapper {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+        }
+        
+        .topomap-title {
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .plot-container {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            height: 100%;
+        }
+        
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+        }
+        
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 12px;
+        }
+        
+        .stats-table th,
+        .stats-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stats-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .stats-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .matrix-container {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .transition-matrix {
+            border-collapse: collapse;
+            margin: 0 auto;
+            background: white;
+            font-size: 11px;
+        }
+        
+        .transition-matrix th,
+        .transition-matrix td {
+            padding: 6px 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        .transition-matrix th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        .transition-matrix td {
+            font-family: 'Courier New', monospace;
+        }
+        
+        @media (max-width: 1200px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .topomap-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .back-to-top:hover {
+            background: #5568d3;
+            transform: translateY(-5px);
+        }
+        
+        .back-to-top.visible {
+            display: flex;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #f5c6cb;
+            font-size: 13px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #c3e6cb;
+            font-size: 13px;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            font-size: 13px;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        
+        .instructions h3 {
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            color: #856404;
+        }
+        
+        .instructions li {
+            margin-bottom: 4px;
+        }
+        
+        .instructions code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 EEG Sleep Stage Topomap Viewer</h1>
+        <div class="subtitle">Standalone HTML Version</div>
+        
+        <div class="instructions">
+            <h3>📋 First Time Setup:</h3>
+            <ol>
+                <li>Run: <code>python convert_mat_to_json.py your_file.mat</code></li>
+                <li>The script will automatically extract sleep stage labels if present in the .mat file</li>
+                <li>Artifact epochs (label = -1) are automatically excluded from analysis</li>
+                <li>This creates a comprehensive JSON file with all YASA analyses</li>
+                <li>Upload the JSON file below to view all visualizations</li>
+            </ol>
+            <p style="margin-top: 10px; color: #856404;">
+                <strong>Note:</strong> Sleep stages in .mat files are automatically remapped:
+                0=N3, 1=N2, 2=N1, 3=REM, 4=Wake → Standard YASA format<br>
+                Epochs with label=-1 (artifacts/unknown) are excluded
+            </p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" accept=".json">
+                <label for="fileInput" class="file-label">📁 Upload JSON File</label>
+            </div>
+            <div class="file-info" id="fileInfo">No file selected</div>
+        </div>
+        
+        <div id="errorMsg" class="error" style="display:none;"></div>
+        <div id="successMsg" class="success" style="display:none;"></div>
+        <div id="loadingMsg" class="loading" style="display:none;">Loading data...</div>
+        
+        <div id="viewerSection" style="display:none;">
+            <div class="info-box">
+                <strong>Channels:</strong> F3-C3, C3-O1, F4-C4, C4-O2 | 
+                <strong>Sampling Rate:</strong> <span id="samplingRate">100</span> Hz | 
+                <strong>Epoch Length:</strong> <span id="epochLength">30</span>s |
+                <strong>Total Epochs:</strong> <span id="totalEpochs">0</span>
+                <br>
+                <small style="color: #666; margin-top: 5px; display: inline-block;">
+                    💡 Tip: Open browser console (F12) to see detailed loading information
+                </small>
+            </div>
+            
+            <div class="controls">
+                <button class="play-btn" id="playBtn">▶️ Play</button>
+                <button class="pause-btn" id="pauseBtn">⏸ Pause</button>
+                <select id="bandSelect">
+                    <option value="Average">Average</option>
+                    <option value="Delta" selected>Delta (0.5-4 Hz)</option>
+                    <option value="Theta">Theta (4-8 Hz)</option>
+                    <option value="Alpha">Alpha (8-12 Hz)</option>
+                    <option value="Sigma">Sigma (12-16 Hz)</option>
+                    <option value="Beta">Beta (16-30 Hz)</option>
+                    <option value="Gamma">Gamma (30-45 Hz)</option>
+                </select>
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Epoch:</span>
+                    <span id="epochValue">0 / 0</span>
+                </div>
+                <input type="range" id="epochSlider" min="0" max="0" value="0">
+            </div>
+            
+            <!-- Grid Layout -->
+            <div class="grid-container">
+                <!-- Topomaps -->
+                <div class="topomap-container" style="grid-column: 1 / -1;">
+                    <div class="topomap-wrapper">
+                        <div class="topomap-title">📊 Current Epoch</div>
+                        <canvas id="topoCanvas" width="700" height="580"></canvas>
+                        <div style="text-align: center; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 11px;">
+                            <strong>Color Key:</strong> 
+                            <span style="color: #4309cd; font-weight: bold;">Blue = Low Power</span> • 
+                            <span style="color: #888; font-weight: bold;">White = Medium</span> • 
+                            <span style="color: #dc143c; font-weight: bold;">Red = High Power</span>
+                        </div>
+                    </div>
+                    <div class="topomap-wrapper">
+                        <div class="topomap-title">📊 Averaged Across All Epochs</div>
+                        <canvas id="avgTopoCanvas" width="700" height="580"></canvas>
+                        <div style="text-align: center; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 11px;">
+                            <strong>Color Key:</strong> 
+                            <span style="color: #4309cd; font-weight: bold;">Blue = Low Power</span> • 
+                            <span style="color: #888; font-weight: bold;">White = Medium</span> • 
+                            <span style="color: #dc143c; font-weight: bold;">Red = High Power</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Current Epoch Spectrogram -->
+                <div class="section">
+                    <div class="section-title">🌊 Current Epoch Spectrogram</div>
+                    <div class="plot-container" id="epochSpectrogramContainer">
+                        <p style="text-align: center; color: #666; padding: 40px;">
+                            <strong>Loading spectrogram...</strong><br>
+                            <small>Spectrograms will appear here once data is loaded</small>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Sleep Statistics -->
+                <div class="section">
+                    <div class="section-title">📈 Sleep Statistics</div>
+                    <div class="plot-container" style="max-height: 400px; overflow-y: auto;">
+                        <table class="stats-table" id="statsTable">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Value</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statsTableBody">
+                                <tr><td colspan="3" style="text-align: center; color: #666;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Hypnogram - Full Width -->
+                <div class="section grid-full">
+                    <div class="section-title">😴 Hypnogram</div>
+                    <div class="plot-container" id="hypnogramContainer">
+                        <p style="text-align: center; color: #666;">Hypnogram will appear here...</p>
+                    </div>
+                </div>
+                
+                <!-- Full-Night Spectrogram - Full Width -->
+                <div class="section grid-full">
+                    <div class="section-title">🎵 Full-Night Spectrogram</div>
+                    <div class="plot-container" id="fullSpectrogramContainer">
+                        <p style="text-align: center; color: #666;">Full-night spectrogram will appear here...</p>
+                    </div>
+                </div>
+                
+                <!-- Stage-Transition Matrix - Full Width -->
+                <div class="section grid-full">
+                    <div class="section-title">🔄 Stage-Transition Matrix</div>
+                    <div class="plot-container">
+                        <div class="matrix-container">
+                            <table class="transition-matrix" id="transitionMatrix">
+                                <tbody id="transitionMatrixBody">
+                                    <tr><td style="text-align: center; color: #666;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="back-to-top" id="backToTop" title="Back to top">↑</div>
+
+    <script>
+        let bandpowerData = null;
+        let isPlaying = false;
+        let playInterval = null;
+        
+        // Channel positions (approximate standard 10-20 positions)
+        const channelPositions = {
+            'F3-C3': {x: 0.3, y: 0.6},
+            'C3-O1': {x: 0.2, y: 0.5},
+            'F4-C4': {x: 0.7, y: 0.6},
+            'C4-O2': {x: 0.8, y: 0.5}
+        };
+        
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        document.getElementById('playBtn').addEventListener('click', startPlayback);
+        document.getElementById('pauseBtn').addEventListener('click', stopPlayback);
+        document.getElementById('epochSlider').addEventListener('input', updateVisualization);
+        document.getElementById('bandSelect').addEventListener('change', updateVisualization);
+        
+        // Back to top button
+        const backToTop = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Handle window resize to redraw canvases
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (bandpowerData) {
+                    updateVisualization();
+                }
+            }, 250);
+        });
+        
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('fileInfo').textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            document.getElementById('loadingMsg').style.display = 'block';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'none';
+            document.getElementById('viewerSection').style.display = 'none';
+            
+            try {
+                const text = await file.text();
+                bandpowerData = JSON.parse(text);
+                
+                // Validate data structure
+                if (!bandpowerData.data || !bandpowerData.channels || !bandpowerData.n_epochs) {
+                    throw new Error('Invalid JSON format. Please use the convert_mat_to_json.py script.');
+                }
+                
+                // Debug logging
+                console.log('=== Data loaded successfully ===');
+                console.log('Number of epochs:', bandpowerData.n_epochs);
+                console.log('Channels:', bandpowerData.channels);
+                console.log('Has hypnogram:', !!bandpowerData.hypnogram);
+                console.log('Has epoch_spectrograms:', !!bandpowerData.epoch_spectrograms);
+                
+                if (bandpowerData.epoch_spectrograms) {
+                    const keys = Object.keys(bandpowerData.epoch_spectrograms);
+                    console.log('Number of spectrograms:', keys.length);
+                    console.log('Spectrogram keys:', keys);
+                    console.log('Sample key type:', typeof keys[0]);
+                    console.log('Sample spectrogram data length:', 
+                        keys.length > 0 ? bandpowerData.epoch_spectrograms[keys[0]].length : 'N/A');
+                }
+                
+                // Check for additional YASA data
+                const hasFullAnalysis = bandpowerData.hypnogram_plot && 
+                                       bandpowerData.spectrogram_fullnight &&
+                                       bandpowerData.sleep_statistics;
+                
+                if (!hasFullAnalysis) {
+                    console.warn('Note: This file appears to be from an older conversion. ' +
+                                'For full YASA analysis, rerun the converter script.');
+                }
+                
+                // Setup UI
+                setupViewer();
+                
+                showSuccess(`Successfully loaded ${bandpowerData.n_epochs} epochs with full YASA analysis`);
+                document.getElementById('loadingMsg').style.display = 'none';
+                document.getElementById('viewerSection').style.display = 'block';
+                
+                updateVisualization();
+                
+                // Scroll to content
+                document.getElementById('viewerSection').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                showError(`Error loading file: ${error.message}`);
+                document.getElementById('loadingMsg').style.display = 'none';
+            }
+        }
+        
+        function setupViewer() {
+            console.log('=== Setting up viewer ===');
+            
+            const slider = document.getElementById('epochSlider');
+            slider.max = bandpowerData.n_epochs - 1;
+            slider.value = 0;
+            
+            document.getElementById('totalEpochs').textContent = bandpowerData.n_epochs;
+            document.getElementById('samplingRate').textContent = bandpowerData.sampling_rate || 100;
+            document.getElementById('epochLength').textContent = bandpowerData.epoch_length || 30;
+            document.getElementById('epochValue').textContent = `0 / ${bandpowerData.n_epochs - 1}`;
+            
+            // Display hypnogram
+            if (bandpowerData.hypnogram_plot) {
+                console.log('Displaying hypnogram plot');
+                document.getElementById('hypnogramContainer').innerHTML = 
+                    `<img src="data:image/png;base64,${bandpowerData.hypnogram_plot}" alt="Hypnogram">`;
+            }
+            
+            // Display full-night spectrogram
+            if (bandpowerData.spectrogram_fullnight) {
+                console.log('Displaying full-night spectrogram');
+                document.getElementById('fullSpectrogramContainer').innerHTML = 
+                    `<img src="data:image/png;base64,${bandpowerData.spectrogram_fullnight}" alt="Full-night spectrogram">`;
+            }
+            
+            // Display sleep statistics
+            if (bandpowerData.sleep_statistics) {
+                console.log('Displaying sleep statistics');
+                displaySleepStatistics(bandpowerData.sleep_statistics);
+            }
+            
+            // Display transition matrix
+            if (bandpowerData.transition_matrix) {
+                console.log('Displaying transition matrix');
+                displayTransitionMatrix(bandpowerData.transition_matrix);
+            }
+            
+            console.log('=== Viewer setup complete ===');
+        }
+        
+        function displaySleepStatistics(stats) {
+            const descriptions = {
+                'TIB': 'Time in Bed (min)',
+                'SPT': 'Sleep Period Time (min)',
+                'WASO': 'Wake After Sleep Onset (min)',
+                'TST': 'Total Sleep Time (min)',
+                'N1': 'Stage N1 duration (min)',
+                'N2': 'Stage N2 duration (min)',
+                'N3': 'Stage N3 duration (min)',
+                'REM': 'REM sleep duration (min)',
+                'NREM': 'NREM sleep duration (min)',
+                'SOL': 'Sleep Onset Latency (min)',
+                'Lat_N1': 'Latency to N1 (min)',
+                'Lat_N2': 'Latency to N2 (min)',
+                'Lat_N3': 'Latency to N3 (min)',
+                'Lat_REM': 'Latency to REM (min)',
+                '%N1': 'N1 percentage (%)',
+                '%N2': 'N2 percentage (%)',
+                '%N3': 'N3 percentage (%)',
+                '%REM': 'REM percentage (%)',
+                '%NREM': 'NREM percentage (%)',
+                'SE': 'Sleep Efficiency (%)',
+                'SME': 'Sleep Maintenance Efficiency (%)'
+            };
+            
+            const tbody = document.getElementById('statsTableBody');
+            tbody.innerHTML = '';
+            
+            for (const [key, value] of Object.entries(stats)) {
+                const row = document.createElement('tr');
+                const displayValue = typeof value === 'number' ? value.toFixed(2) : value;
+                row.innerHTML = `
+                    <td><strong>${key}</strong></td>
+                    <td>${displayValue}</td>
+                    <td>${descriptions[key] || ''}</td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+        
+        function displayTransitionMatrix(matrix) {
+            const tbody = document.getElementById('transitionMatrixBody');
+            tbody.innerHTML = '';
+            
+            // Header row
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th>From \\ To</th>' + 
+                matrix.labels.map(l => `<th>${l}</th>`).join('');
+            tbody.appendChild(headerRow);
+            
+            // Data rows
+            for (let i = 0; i < matrix.values.length; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<th>${matrix.labels[i]}</th>` +
+                    matrix.values[i].map(v => {
+                        const color = getTransitionColor(v);
+                        return `<td style="background-color: ${color}">${v.toFixed(3)}</td>`;
+                    }).join('');
+                tbody.appendChild(row);
+            }
+        }
+        
+        function getTransitionColor(value) {
+            // Color scale from white (0) to blue (1)
+            const intensity = Math.round(255 - (value * 200));
+            return `rgb(${intensity}, ${intensity}, 255)`;
+        }
+        
+        function updateVisualization() {
+            if (!bandpowerData) return;
+            
+            const epochIdx = parseInt(document.getElementById('epochSlider').value);
+            const band = document.getElementById('bandSelect').value;
+            
+            document.getElementById('epochValue').textContent = 
+                `${epochIdx} / ${bandpowerData.n_epochs - 1}`;
+            
+            drawTopomap(epochIdx, band);
+            drawAveragedTopomap(band);
+        }
+        
+        function drawAveragedTopomap(band) {
+            const canvas = document.getElementById('avgTopoCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Make canvas responsive - ensure enough width for colorbar
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth - 20;
+            canvas.width = Math.min(containerWidth, 700);  // Increased from 600 for colorbar space
+            canvas.height = canvas.width * 0.83; // Maintain aspect ratio
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            const channels = bandpowerData.channels;
+            
+            // Calculate average across all epochs
+            let data = [];
+            if (band === 'Average') {
+                for (const ch of channels) {
+                    const bands = ['Delta', 'Theta', 'Alpha', 'Sigma', 'Beta', 'Gamma'];
+                    let sum = 0;
+                    for (let epoch = 0; epoch < bandpowerData.n_epochs; epoch++) {
+                        const epochData = bandpowerData.data[epoch];
+                        const avg = bands.reduce((s, b) => s + epochData.channels[ch][b], 0) / bands.length;
+                        sum += avg;
+                    }
+                    data.push(sum / bandpowerData.n_epochs);
+                }
+            } else {
+                for (const ch of channels) {
+                    let sum = 0;
+                    for (let epoch = 0; epoch < bandpowerData.n_epochs; epoch++) {
+                        const epochData = bandpowerData.data[epoch];
+                        sum += epochData.channels[ch][band];
+                    }
+                    data.push(sum / bandpowerData.n_epochs);
+                }
+            }
+            
+            // Normalize data
+            const minVal = Math.min(...data);
+            const maxVal = Math.max(...data);
+            const range = maxVal - minVal || 1;
+            
+            // Draw colorbar first
+            drawColorbar(ctx, width, height, minVal, maxVal);
+            
+            // Draw head outline
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) * 0.35;
+            
+            // Create interpolated heatmap
+            const imageData = ctx.createImageData(width, height);
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist <= radius) {
+                        const value = interpolateValue(x, y, centerX, centerY, radius, data, channels);
+                        const norm = (value - minVal) / range;
+                        const color = getHeatmapColor(norm);
+                        
+                        const idx = (y * width + x) * 4;
+                        imageData.data[idx] = color.r;
+                        imageData.data[idx + 1] = color.g;
+                        imageData.data[idx + 2] = color.b;
+                        imageData.data[idx + 3] = 255;
+                    }
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Draw head outline
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Draw nose
+            ctx.beginPath();
+            ctx.moveTo(centerX - 15, centerY - radius);
+            ctx.lineTo(centerX, centerY - radius - 20);
+            ctx.lineTo(centerX + 15, centerY - radius);
+            ctx.stroke();
+            
+            // Draw ears
+            ctx.beginPath();
+            ctx.arc(centerX - radius - 10, centerY, 15, Math.PI * 0.3, Math.PI * 1.7);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(centerX + radius + 10, centerY, 15, Math.PI * 1.3, Math.PI * 2.7);
+            ctx.stroke();
+            
+            // Draw channel markers and labels
+            for (let i = 0; i < channels.length; i++) {
+                const chName = channels[i];
+                const pos = channelPositions[chName];
+                const x = centerX + (pos.x - 0.5) * 2 * radius * 0.8;
+                const y = centerY - (pos.y - 0.5) * 2 * radius * 0.8;
+                
+                // Draw marker
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Draw label with white text and black outline
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = 'black';
+                ctx.strokeText(chName, x, y - 15);
+                ctx.fillStyle = 'white';
+                ctx.fillText(chName, x, y - 15);
+            }
+            
+            // Draw title
+            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${band} Power - Mean (n=${bandpowerData.n_epochs})`, centerX, 30);
+        }
+        
+        function drawTopomap(epochIdx, band) {
+            const canvas = document.getElementById('topoCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Make canvas responsive - ensure enough width for colorbar
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth - 20;
+            canvas.width = Math.min(containerWidth, 700);  // Increased from 600 for colorbar space
+            canvas.height = canvas.width * 0.83; // Maintain aspect ratio
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Get data for this epoch
+            const epochData = bandpowerData.data[epochIdx];
+            const channels = bandpowerData.channels;
+            
+            // Extract values for selected band
+            let data = [];
+            if (band === 'Average') {
+                for (const ch of channels) {
+                    const bands = ['Delta', 'Theta', 'Alpha', 'Sigma', 'Beta', 'Gamma'];
+                    const avg = bands.reduce((sum, b) => sum + epochData.channels[ch][b], 0) / bands.length;
+                    data.push(avg);
+                }
+            } else {
+                for (const ch of channels) {
+                    data.push(epochData.channels[ch][band]);
+                }
+            }
+            
+            // Normalize data
+            const minVal = Math.min(...data);
+            const maxVal = Math.max(...data);
+            const range = maxVal - minVal || 1;
+            
+            // Draw colorbar first (so it's in the background)
+            drawColorbar(ctx, width, height, minVal, maxVal);
+            
+            // Draw head outline
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) * 0.35;
+            
+            // Create interpolated heatmap
+            const imageData = ctx.createImageData(width, height);
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist <= radius) {
+                        const value = interpolateValue(x, y, centerX, centerY, radius, data, channels);
+                        const norm = (value - minVal) / range;
+                        const color = getHeatmapColor(norm);
+                        
+                        const idx = (y * width + x) * 4;
+                        imageData.data[idx] = color.r;
+                        imageData.data[idx + 1] = color.g;
+                        imageData.data[idx + 2] = color.b;
+                        imageData.data[idx + 3] = 255;
+                    }
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Draw head outline
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Draw nose
+            ctx.beginPath();
+            ctx.moveTo(centerX - 15, centerY - radius);
+            ctx.lineTo(centerX, centerY - radius - 20);
+            ctx.lineTo(centerX + 15, centerY - radius);
+            ctx.stroke();
+            
+            // Draw ears
+            ctx.beginPath();
+            ctx.arc(centerX - radius - 10, centerY, 15, Math.PI * 0.3, Math.PI * 1.7);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(centerX + radius + 10, centerY, 15, Math.PI * 1.3, Math.PI * 2.7);
+            ctx.stroke();
+            
+            // Draw channel markers and labels
+            for (let i = 0; i < channels.length; i++) {
+                const chName = channels[i];
+                const pos = channelPositions[chName];
+                const x = centerX + (pos.x - 0.5) * 2 * radius * 0.8;
+                const y = centerY - (pos.y - 0.5) * 2 * radius * 0.8;
+                
+                // Draw marker
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Draw label with white text and black outline
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = 'black';
+                ctx.strokeText(chName, x, y - 15);
+                ctx.fillStyle = 'white';
+                ctx.fillText(chName, x, y - 15);
+            }
+            
+            // Draw title with sleep stage
+            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            
+            let title = `${band} Power - Epoch ${epochIdx}`;
+            
+            // Add sleep stage if available
+            if (bandpowerData.hypnogram && bandpowerData.hypnogram.values) {
+                const stage = bandpowerData.hypnogram.values[epochIdx];
+                const stageNames = ['Wake', 'N1', 'N2', 'N3', 'REM'];
+                const stageColors = {
+                    0: '#ff6b6b',  // Wake
+                    1: '#4ecdc4',  // N1
+                    2: '#45b7d1',  // N2
+                    3: '#5f27cd',  // N3
+                    4: '#feca57'   // REM
+                };
+                
+                // Draw main title
+                ctx.fillText(title, centerX, 25);
+                
+                // Draw sleep stage badge
+                const stageName = stageNames[stage] || 'Unknown';
+                const badgeWidth = 100;
+                const badgeHeight = 25;
+                const badgeX = centerX - badgeWidth / 2;
+                const badgeY = 35;
+                
+                // Badge background
+                ctx.fillStyle = stageColors[stage] || '#999';
+                ctx.fillRect(badgeX, badgeY, badgeWidth, badgeHeight);
+                
+                // Badge text
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(stageName, centerX, badgeY + 17);
+            } else {
+                // Just draw title without stage
+                ctx.fillText(title, centerX, 30);
+            }
+        }
+        
+        function interpolateValue(x, y, centerX, centerY, radius, data, channels) {
+            let weightedSum = 0;
+            let weightSum = 0;
+            
+            for (let i = 0; i < channels.length; i++) {
+                const pos = channelPositions[channels[i]];
+                const chX = centerX + (pos.x - 0.5) * 2 * radius * 0.8;
+                const chY = centerY - (pos.y - 0.5) * 2 * radius * 0.8;
+                
+                const dist = Math.sqrt((x - chX) ** 2 + (y - chY) ** 2);
+                const weight = 1 / (dist + 1);
+                
+                weightedSum += data[i] * weight;
+                weightSum += weight;
+            }
+            
+            return weightedSum / weightSum;
+        }
+        
+        function drawColorbar(ctx, canvasWidth, canvasHeight, minVal, maxVal) {
+            // Colorbar dimensions - make it larger and more prominent
+            const barWidth = 30;
+            const barHeight = 250;
+            const barX = canvasWidth - 90;
+            const barY = (canvasHeight - barHeight) / 2;
+            
+            // Draw white background for colorbar area
+            ctx.fillStyle = 'white';
+            ctx.fillRect(barX - 5, barY - 5, barWidth + 10, barHeight + 10);
+            
+            // Draw colorbar gradient
+            for (let i = 0; i < barHeight; i++) {
+                const norm = 1 - (i / barHeight); // Inverted so high values at top
+                const color = getHeatmapColor(norm);
+                
+                ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+                ctx.fillRect(barX, barY + i, barWidth, 1);
+            }
+            
+            // Draw border around colorbar
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(barX, barY, barWidth, barHeight);
+            
+            // Draw tick marks and labels
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'left';
+            
+            const numTicks = 5;
+            for (let i = 0; i < numTicks; i++) {
+                const t = i / (numTicks - 1);
+                const value = maxVal - t * (maxVal - minVal);
+                const y = barY + t * barHeight;
+                
+                // Draw tick mark
+                ctx.beginPath();
+                ctx.moveTo(barX + barWidth, y);
+                ctx.lineTo(barX + barWidth + 5, y);
+                ctx.stroke();
+                
+                // Draw label
+                ctx.fillText(value.toFixed(3), barX + barWidth + 10, y + 4);
+            }
+            
+            // Colorbar title
+            ctx.save();
+            ctx.translate(barX - 15, barY + barHeight / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('Relative Power', 0, 0);
+            ctx.restore();
+            
+            // Add "Colorbar" label at top
+            ctx.fillStyle = '#667eea';
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('SCALE', barX + barWidth / 2, barY - 10);
+        }
+        
+        function getHeatmapColor(value) {
+            value = Math.max(0, Math.min(1, value));
+            
+            let r, g, b;
+            
+            if (value < 0.5) {
+                const t = value * 2;
+                r = Math.round(67 + (255 - 67) * t);
+                g = Math.round(0 + (255 - 0) * t);
+                b = Math.round(133 + (255 - 133) * t);
+            } else {
+                const t = (value - 0.5) * 2;
+                r = 255;
+                g = Math.round(255 - 255 * t);
+                b = Math.round(255 - 255 * t);
+            }
+            
+            return { r, g, b };
+        }
+        
+        function startPlayback() {
+            if (isPlaying) return;
+            isPlaying = true;
+            
+            playInterval = setInterval(() => {
+                const slider = document.getElementById('epochSlider');
+                let current = parseInt(slider.value);
+                
+                if (current < slider.max) {
+                    slider.value = current + 1;
+                } else {
+                    slider.value = 0;
+                }
+                
+                updateVisualization();
+            }, 100);
+        }
+        
+        function stopPlayback() {
+            isPlaying = false;
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMsg');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
