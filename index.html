@@ -96,10 +96,10 @@
         }
         
         button {
-            padding: 10px 25px;
+            padding: 6px 18px;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 600;
@@ -131,10 +131,10 @@
         }
         
         select {
-            padding: 10px 20px;
+            padding: 6px 12px;
             border: 2px solid #ddd;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             background: white;
             cursor: pointer;
             transition: all 0.3s;
@@ -158,7 +158,7 @@
         
         input[type="range"] {
             width: 100%;
-            height: 8px;
+            height: 6px;
             border-radius: 5px;
             background: #ddd;
             outline: none;
@@ -168,8 +168,8 @@
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: #667eea;
             cursor: pointer;
@@ -182,52 +182,93 @@
         }
         
         input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: #667eea;
             cursor: pointer;
             border: none;
         }
         
-        #topoCanvas, #avgTopoCanvas {
-            border: 2px solid #eee;
+        /* Spectrogram Grid */
+        .spectrogram-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .spectrogram-item {
+            background: white;
+            padding: 15px;
             border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .spectrogram-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        /* Topomap Container */
+        #topoCanvas, #avgTopoCanvas {
+            width: 100%;
+            height: auto;
+            border: 2px solid #eee;
+            border-radius: 8px;
             background: white;
         }
         
         .topomap-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            align-items: flex-start;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
         }
         
         .topomap-wrapper {
-            flex: 1;
-            min-width: 300px;
-            max-width: 600px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
         .topomap-title {
             text-align: center;
             font-weight: bold;
             color: #333;
-            margin-bottom: 10px;
-            font-size: 16px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .grid-full {
+            grid-column: 1 / -1;
         }
         
         .section {
-            margin-bottom: 30px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
         .section-title {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #667eea;
         }
         
@@ -305,6 +346,10 @@
         }
         
         @media (max-width: 1200px) {
+            .spectrogram-grid {
+                grid-template-columns: 1fr;
+            }
+            
             .grid-container {
                 grid-template-columns: 1fr;
             }
@@ -408,6 +453,193 @@
             font-family: 'Courier New', monospace;
             font-size: 12px;
         }
+
+        /* Make spectrograms more compact */
+.spectrogram-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.spectrogram-item {
+    background: white;
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-height: 350px; /* Limit height */
+}
+
+.spectrogram-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #667eea;
+}
+
+.spectrogram-item .plot-container {
+    max-height: 280px; /* Limit container height */
+    overflow: hidden;
+    padding: 5px;
+}
+
+.spectrogram-item .plot-container img {
+    max-width: 100%;
+    max-height: 270px; /* Limit image height */
+    height: auto;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain; /* Maintain aspect ratio */
+    border-radius: 4px;
+}
+
+/* Compact controls */
+.controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding: 6px 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    transform: scale(0.95);
+}
+
+/* Compact slider */
+.slider-container {
+    margin-bottom: 10px;
+    padding: 6px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Compact info box */
+.info-box {
+    background: #e7f3ff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border-left: 4px solid #667eea;
+    font-size: 12px;
+}
+
+/* Reduce container padding on top */
+.container {
+    max-width: 1800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    padding: 20px 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 5px;
+    text-align: center;
+    font-size: 1.8em;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 12px;
+    font-size: 0.85em;
+}
+
+/* Compact instructions */
+.instructions {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+
+.instructions h3 {
+    color: #856404;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.instructions ol {
+    margin-left: 18px;
+    color: #856404;
+}
+
+.instructions li {
+    margin-bottom: 3px;
+}
+
+/* Compact upload section */
+.upload-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 2px dashed #ccc;
+    text-align: center;
+}
+
+.file-info {
+    margin-top: 10px;
+    color: #666;
+    font-size: 13px;
+}
+
+/* Add sticky controls option */
+.controls-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: white;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #eee;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .spectrogram-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .spectrogram-item {
+        max-height: none;
+    }
+    
+    .spectrogram-item .plot-container {
+        max-height: none;
+    }
+    
+    .spectrogram-item .plot-container img {
+        max-height: none;
+    }
+}
+
+/* Scale down topomap canvases visually */
+#topoCanvas, #avgTopoCanvas {
+    width: 50% !important;   /* controls displayed size, try 70% or 60% */
+    height: auto;
+    margin: 0 auto;
+    display: block;
+}
+
     </style>
 </head>
 <body>
@@ -449,10 +681,28 @@
                 <strong>Sampling Rate:</strong> <span id="samplingRate">100</span> Hz | 
                 <strong>Epoch Length:</strong> <span id="epochLength">30</span>s |
                 <strong>Total Epochs:</strong> <span id="totalEpochs">0</span>
-                <br>
-                <small style="color: #666; margin-top: 5px; display: inline-block;">
-                    💡 Tip: Open browser console (F12) to see detailed loading information
-                </small>
+            </div>
+            
+            <!-- Spectrogram Grid at Top -->
+            <div class="spectrogram-grid">
+                <!-- Current Epoch Spectrogram -->
+                <div class="spectrogram-item">
+                    <div class="spectrogram-title">🌊 Current Epoch Spectrogram</div>
+                    <div class="plot-container" id="epochSpectrogramContainer">
+                        <p style="text-align: center; color: #666; padding: 40px;">
+                            <strong>Loading spectrogram...</strong><br>
+                            <small>Spectrograms will appear here once data is loaded</small>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Full-Night Spectrogram -->
+                <div class="spectrogram-item">
+                    <div class="spectrogram-title">🎵 Full-Night Spectrogram</div>
+                    <div class="plot-container" id="fullSpectrogramContainer">
+                        <p style="text-align: center; color: #666; padding: 40px;">Loading...</p>
+                    </div>
+                </div>
             </div>
             
             <div class="controls">
@@ -477,43 +727,32 @@
                 <input type="range" id="epochSlider" min="0" max="0" value="0">
             </div>
             
-            <!-- Grid Layout -->
+            <!-- Topomaps -->
+            <div class="topomap-container">
+                <div class="topomap-wrapper">
+                    <div class="topomap-title">📊 Current Epoch</div>
+                    <canvas id="topoCanvas" width="700" height="580"></canvas>
+                    <div style="text-align: center; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 11px;">
+                        <strong>Color Key:</strong> 
+                        <span style="color: #4309cd; font-weight: bold;">Blue = Low Power</span> • 
+                        <span style="color: #888; font-weight: bold;">White = Medium</span> • 
+                        <span style="color: #dc143c; font-weight: bold;">Red = High Power</span>
+                    </div>
+                </div>
+                <div class="topomap-wrapper">
+                    <div class="topomap-title">📊 Averaged Across All Epochs</div>
+                    <canvas id="avgTopoCanvas" width="700" height="580"></canvas>
+                    <div style="text-align: center; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 11px;">
+                        <strong>Color Key:</strong> 
+                        <span style="color: #4309cd; font-weight: bold;">Blue = Low Power</span> • 
+                        <span style="color: #888; font-weight: bold;">White = Medium</span> • 
+                        <span style="color: #dc143c; font-weight: bold;">Red = High Power</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Grid Layout for Other Content -->
             <div class="grid-container">
-                <!-- Topomaps -->
-                <div class="topomap-container" style="grid-column: 1 / -1;">
-                    <div class="topomap-wrapper">
-                        <div class="topomap-title">📊 Current Epoch</div>
-                        <canvas id="topoCanvas" width="700" height="580"></canvas>
-                        <div style="text-align: center; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 11px;">
-                            <strong>Color Key:</strong> 
-                            <span style="color: #4309cd; font-weight: bold;">Blue = Low Power</span> • 
-                            <span style="color: #888; font-weight: bold;">White = Medium</span> • 
-                            <span style="color: #dc143c; font-weight: bold;">Red = High Power</span>
-                        </div>
-                    </div>
-                    <div class="topomap-wrapper">
-                        <div class="topomap-title">📊 Averaged Across All Epochs</div>
-                        <canvas id="avgTopoCanvas" width="700" height="580"></canvas>
-                        <div style="text-align: center; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 11px;">
-                            <strong>Color Key:</strong> 
-                            <span style="color: #4309cd; font-weight: bold;">Blue = Low Power</span> • 
-                            <span style="color: #888; font-weight: bold;">White = Medium</span> • 
-                            <span style="color: #dc143c; font-weight: bold;">Red = High Power</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Current Epoch Spectrogram -->
-                <div class="section">
-                    <div class="section-title">🌊 Current Epoch Spectrogram</div>
-                    <div class="plot-container" id="epochSpectrogramContainer">
-                        <p style="text-align: center; color: #666; padding: 40px;">
-                            <strong>Loading spectrogram...</strong><br>
-                            <small>Spectrograms will appear here once data is loaded</small>
-                        </p>
-                    </div>
-                </div>
-                
                 <!-- Sleep Statistics -->
                 <div class="section">
                     <div class="section-title">📈 Sleep Statistics</div>
@@ -533,19 +772,11 @@
                     </div>
                 </div>
                 
-                <!-- Hypnogram - Full Width -->
-                <div class="section grid-full">
+                <!-- Hypnogram -->
+                <div class="section">
                     <div class="section-title">😴 Hypnogram</div>
                     <div class="plot-container" id="hypnogramContainer">
-                        <p style="text-align: center; color: #666;">Hypnogram will appear here...</p>
-                    </div>
-                </div>
-                
-                <!-- Full-Night Spectrogram - Full Width -->
-                <div class="section grid-full">
-                    <div class="section-title">🎵 Full-Night Spectrogram</div>
-                    <div class="plot-container" id="fullSpectrogramContainer">
-                        <p style="text-align: center; color: #666;">Full-night spectrogram will appear here...</p>
+                        <p style="text-align: center; color: #666;">Loading...</p>
                     </div>
                 </div>
                 
@@ -569,11 +800,11 @@
     <div class="back-to-top" id="backToTop" title="Back to top">↑</div>
 
     <script>
+        // [Keep all the existing JavaScript exactly as it was - no changes needed]
         let bandpowerData = null;
         let isPlaying = false;
         let playInterval = null;
         
-        // Channel positions (approximate standard 10-20 positions)
         const channelPositions = {
             'F3-C3': {x: 0.3, y: 0.6},
             'C3-O1': {x: 0.2, y: 0.5},
@@ -587,7 +818,6 @@
         document.getElementById('epochSlider').addEventListener('input', updateVisualization);
         document.getElementById('bandSelect').addEventListener('change', updateVisualization);
         
-        // Back to top button
         const backToTop = document.getElementById('backToTop');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 300) {
@@ -600,7 +830,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
         
-        // Handle window resize to redraw canvases
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
@@ -794,7 +1023,77 @@
             
             drawTopomap(epochIdx, band);
             drawAveragedTopomap(band);
+            updateEpochSpectrogram(epochIdx);  // ADD THIS LINE
         }
+        
+        function updateEpochSpectrogram(epochIdx) {
+                const container = document.getElementById('epochSpectrogramContainer');
+                
+                console.log('updateEpochSpectrogram called with epoch:', epochIdx);
+                
+                // Try multiple key formats
+                const possibleKeys = [String(epochIdx), epochIdx, epochIdx.toString(), `${epochIdx}`];
+                
+                let spectrogramFound = false;
+                let spectrogramKey = null;
+                
+                if (bandpowerData.epoch_spectrograms) {
+                    console.log('Available spectrogram keys:', Object.keys(bandpowerData.epoch_spectrograms));
+                    
+                    for (const key of possibleKeys) {
+                        if (bandpowerData.epoch_spectrograms[key]) {
+                            spectrogramFound = true;
+                            spectrogramKey = key;
+                            console.log('Found spectrogram with key:', key);
+                            break;
+                        }
+                    }
+                }
+                
+                if (spectrogramFound && spectrogramKey) {
+                    const imgData = bandpowerData.epoch_spectrograms[spectrogramKey];
+                    console.log('Displaying spectrogram');
+                    container.innerHTML = 
+                        `<img src="data:image/png;base64,${imgData}" 
+                              alt="Epoch ${epochIdx} spectrogram" 
+                              style="max-width: 100%; height: auto; display: block; margin: 0 auto;">`;
+                } else {
+                    console.log('No spectrogram found for epoch', epochIdx);
+                    // Show sleep stage info if available
+                    if (bandpowerData.hypnogram && bandpowerData.hypnogram.values) {
+                        const stage = bandpowerData.hypnogram.values[epochIdx];
+                        const stageNames = ['Wake', 'N1', 'N2', 'N3', 'REM'];
+                        const stageColors = {
+                            0: '#ff6b6b',  // Wake - red
+                            1: '#4ecdc4',  // N1 - cyan
+                            2: '#45b7d1',  // N2 - blue
+                            3: '#5f27cd',  // N3 - deep purple
+                            4: '#feca57'   // REM - yellow
+                        };
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 60px 20px;">
+                                <div style="background: ${stageColors[stage]}; color: white; display: inline-block; padding: 20px 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 20px;">
+                                    <h3 style="margin: 0; font-size: 24px;">Epoch ${epochIdx}</h3>
+                                    <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: bold;">${stageNames[stage] || 'Unknown'}</p>
+                                </div>
+                                <p style="color: #666; margin-top: 20px; font-size: 14px;">
+                                    Detailed spectrogram only available for first 10 epochs.<br>
+                                    Currently available: ${bandpowerData.epoch_spectrograms ? Object.keys(bandpowerData.epoch_spectrograms).length : 0} spectrograms<br>
+                                    Rerun converter with more epochs if needed.
+                                </p>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <p style="text-align: center; color: #666; padding: 60px 20px;">
+                                Epoch spectrogram not available for epoch ${epochIdx}<br>
+                                <small>Available: ${bandpowerData.epoch_spectrograms ? Object.keys(bandpowerData.epoch_spectrograms).length : 0} spectrograms</small>
+                            </p>
+                        `;
+                    }
+                }
+            }
+
         
         function drawAveragedTopomap(band) {
             const canvas = document.getElementById('avgTopoCanvas');
@@ -844,6 +1143,7 @@
             
             // Draw colorbar first
             drawColorbar(ctx, width, height, minVal, maxVal);
+
             
             // Draw head outline
             const centerX = width / 2;
